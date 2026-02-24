@@ -6,7 +6,7 @@ plugins {
 
 group = 'UNI'
 version = '0.0.1-SNAPSHOT'
-description = 'tool-falegnameria-api'
+description = 'ligno-suite-api'
 
 java {
     toolchain {
