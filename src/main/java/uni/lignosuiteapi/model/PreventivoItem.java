@@ -14,6 +14,7 @@ public class PreventivoItem {
 
     private String description;
     private Double quantity;
+    private String unitaMisura;
     private Double rate;
     private Double amount;
 }
