@@ -31,4 +31,32 @@ public class AuthController {
         }
         return utente; // Restituisce i dati dell'utente se il login ha successo
     }
+
+    @PutMapping("/update/{id}")
+    public Utente updateProfilo(@PathVariable Long id, @RequestBody Utente datiAggiornati) {
+        // Cerca l'utente nel DB
+        Utente utenteEsistente = utenteRepository.findById(id).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "Utente non trovato")
+        );
+
+        // Aggiorna solo i campi del profilo aziendale (evitiamo di toccare la password qui per sicurezza)
+        utenteEsistente.setNomeAzienda(datiAggiornati.getNomeAzienda());
+        // Se l'utente cambia il nome azienda, aggiorniamo anche il nome generico usato nel login
+        utenteEsistente.setNome(datiAggiornati.getNomeAzienda());
+
+        utenteEsistente.setNomeTitolare(datiAggiornati.getNomeTitolare());
+        utenteEsistente.setCognomeTitolare(datiAggiornati.getCognomeTitolare());
+        utenteEsistente.setTelefono(datiAggiornati.getTelefono());
+        utenteEsistente.setPartitaIva(datiAggiornati.getPartitaIva());
+        utenteEsistente.setCodiceFiscale(datiAggiornati.getCodiceFiscale());
+        utenteEsistente.setIndirizzo(datiAggiornati.getIndirizzo());
+        utenteEsistente.setCitta(datiAggiornati.getCitta());
+        utenteEsistente.setCap(datiAggiornati.getCap());
+        utenteEsistente.setProvincia(datiAggiornati.getProvincia());
+        utenteEsistente.setLogoBase64(datiAggiornati.getLogoBase64());
+        utenteEsistente.setEmail(datiAggiornati.getEmail()); // Permettiamo di aggiornare l'email di contatto
+
+        // Salva e restituisce l'utente aggiornato
+        return utenteRepository.save(utenteEsistente);
+    }
 }
