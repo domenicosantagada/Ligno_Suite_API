@@ -26,10 +26,10 @@ public class PreventiviController {
     // 1. CREAZIONE NUOVO PREVENTIVO (POST)
     @PostMapping
     public Preventivo createPreventivo(@RequestBody Preventivo invoice) {
-        // Blocca se si sta cercando di creare un preventivo con un ID già esistente
-        if (preventivoRepository.existsById(invoice.getInvoiceNumber())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Il numero preventivo esiste già.");
-        }
+//        // Blocca se si sta cercando di creare un preventivo con un ID già esistente
+//        if (preventivoRepository.existsById(invoice.getInvoiceNumber())) {
+//            throw new ResponseStatusException(HttpStatus.CONFLICT, "Il numero preventivo esiste già.");
+//        }
         return preventivoRepository.save(invoice);
     }
 

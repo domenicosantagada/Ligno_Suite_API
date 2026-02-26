@@ -1,9 +1,6 @@
 package uni.lignosuiteapi.model;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 import lombok.Data;
 
 import java.util.List;
@@ -11,7 +8,11 @@ import java.util.List;
 @Entity // <-- QUESTO E' IL PEZZO CHE MANCA O NON E' RICONOSCIUTO
 @Data
 public class Preventivo {
+
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id; // Vera chiave primaria del DB
+
     private Long invoiceNumber; // Collegato a invoiceNumber in Angular
     private Long utenteId;
     private String date;
