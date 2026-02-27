@@ -16,12 +16,13 @@ public class ClienteController {
     private ClienteRepository clienteRepository;
 
     @GetMapping
-    public List<Cliente> getAllClienti(@RequestParam Long utenteId) {
-        return clienteRepository.findByUtenteId(utenteId);
+    public List<Cliente> getAllClienti(@RequestParam Long id) {
+        return clienteRepository.findByUtenteId(id);
     }
 
     @PostMapping
     public Cliente createCliente(@RequestBody Cliente cliente) {
+
         return clienteRepository.save(cliente);
     }
 
