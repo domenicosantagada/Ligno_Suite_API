@@ -1,4 +1,4 @@
-2026-02-27 18:31:21.241506Z jdbc[3]: exception
+2026-02-27 18:32:07.781371Z jdbc[3]: exception
 java.sql.SQLClientInfoException: Client info name 'ApplicationName' not supported.
 	at org.h2.jdbc.JdbcConnection.setClientInfo(JdbcConnection.java:1624)
 	at com.intellij.database.remote.jdbc.impl.RemoteConnectionImpl.setClientInfo(RemoteConnectionImpl.java:468)
