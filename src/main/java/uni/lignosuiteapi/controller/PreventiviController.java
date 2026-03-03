@@ -51,30 +51,47 @@ public class PreventiviController {
     /**
      * 2. AGGIORNAMENTO PREVENTIVO ESISTENTE (PUT)
      * * @PathVariable Long id: Prende l'ID del preventivo direttamente dall'URL (es. /api/preventivi/5).
+     * * @RequestBody Preventivo invoice: Contiene i nuovi dati del preventivo modificati dall'utente nel frontend.
      */
     @PutMapping("/{id}")
     public Preventivo updatePreventivo(@PathVariable Long id, @RequestBody Preventivo invoice) {
 
-        // Controllo di coerenza: prima di aggiornare, verifichiamo che il preventivo esista davvero nel DB!
-        // Se non esiste, restituiamo un errore 404 (NOT FOUND).
-        if (!preventivoRepository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Impossibile aggiornare: preventivo non trovato.");
+        // 1. Recupera il preventivo originale dal DB
+        Preventivo preventivoEsistente = preventivoRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Impossibile aggiornare: preventivo non trovato."));
+
+        // 2. Controllo di sicurezza: chi tenta di modificarlo è il vero proprietario?
+        if (!preventivoEsistente.getUtenteId().equals(invoice.getUtenteId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Accesso negato: non sei autorizzato a modificare questo preventivo.");
         }
 
-        // In Spring Data JPA, il metodo save() funziona come un "Upsert" (Update o Insert).
-        // Poiché abbiamo verificato che l'ID esiste già nel DB, JPA farà un UPDATE del record.
+        // 3. Assicuriamoci che l'ID del preventivo non venga sovrascritto
+        invoice.setId(id);
+
+        // 4. Salva la modifica
         return preventivoRepository.save(invoice);
     }
 
     /**
      * ELIMINAZIONE PREVENTIVO (DELETE)
      * * @PathVariable Long id: ID del preventivo da cancellare.
+     * * @RequestParam Long utenteId: ID dell'utente che ha creato il preventivo.
      */
     @DeleteMapping("/{id}")
-    public void deletePreventivo(@PathVariable Long id) {
-        // Elimina il preventivo. Se ci sono relazioni Cascade nel DB (es. righe del preventivo associate),
-        // verranno eliminate automaticamente in base alla configurazione dell'entità Preventivo.
-        preventivoRepository.deleteById(id);
+    public void deletePreventivo(@PathVariable Long id, @RequestParam Long utenteId) {
+        // 1. Cerca il preventivo nel database
+        Preventivo preventivoEsistente = preventivoRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Preventivo non trovato."));
+
+        // 2. Controllo di sicurezza
+        // Verifica che l'utente che fa la richiesta sia il vero proprietario del preventivo
+        if (!preventivoEsistente.getUtenteId().equals(utenteId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Accesso negato: non sei autorizzato a eliminare questo preventivo.");
+        }
+
+
+        // 3. Se il controllo è superato, procedi con l'eliminazione sicura
+        preventivoRepository.delete(preventivoEsistente);
     }
 
     /**

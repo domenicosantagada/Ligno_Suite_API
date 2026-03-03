@@ -1,7 +1,9 @@
 package uni.lignosuiteapi.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import uni.lignosuiteapi.model.Cliente;
 import uni.lignosuiteapi.repository.ClienteRepository;
 
@@ -56,17 +58,23 @@ public class ClienteController {
      * Endpoint per l'AGGIORNAMENTO (Update) di un cliente esistente.
      * Metodo HTTP: PUT (o PATCH in alcuni contesti, ma PUT è standard per sostituire interamente l'oggetto)
      * * @PathVariable Long id: Cattura l'ID del cliente passato direttamente nel percorso URL (es. /api/clienti/5).
-     *
-     * @RequestBody Cliente cliente: Contiene i nuovi dati del cliente modificati dall'utente nel frontend.
+     * * @RequestBody Cliente cliente: Contiene i nuovi dati del cliente modificati dall'utente nel frontend.
      */
     @PutMapping("/{id}")
     public Cliente updateCliente(@PathVariable Long id, @RequestBody Cliente cliente) {
-        // Sicurezza/Coerenza: Ci assicuriamo che l'ID dell'oggetto da salvare sia esattamente
-        // quello passato nell'URL. In questo modo Spring Data JPA capisce che deve fare un UPDATE
-        // di un record esistente e non un INSERT di un nuovo record.
+        // 1. Recupera il cliente originale dal Database
+        Cliente clienteEsistente = clienteRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Impossibile aggiornare: cliente non trovato."));
+
+        // 2. Controllo di sicurezza: chi tenta di modificarlo è davvero il proprietario?
+        if (!clienteEsistente.getUtenteId().equals(cliente.getUtenteId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Accesso negato: non sei autorizzato a modificare questo cliente.");
+        }
+
+        // 3. Ci assicuriamo di non sovrascrivere inavvertitamente l'ID
         cliente.setId(id);
 
-        // Salva le modifiche nel database e restituisce il cliente aggiornato
+        // 4. Salva il record aggiornato
         return clienteRepository.save(cliente);
     }
 
@@ -74,12 +82,20 @@ public class ClienteController {
      * Endpoint per l'ELIMINAZIONE (Delete) di un cliente.
      * Metodo HTTP: DELETE
      * * @PathVariable Long id: Prende l'ID dall'URL (es. /api/clienti/5) per capire quale record eliminare.
+     * * @RequestParam Long utenteId: Legge il parametro dalla stringa di interrogazione dell'URL (Query String).
      */
     @DeleteMapping("/{id}")
-    public void deleteCliente(@PathVariable Long id) {
-        // Elimina fisicamente il record del cliente dal database corrispondente a quell'ID.
-        // Poiché il tipo di ritorno è 'void', il backend risponderà semplicemente con uno status HTTP 200 (OK)
-        // senza alcun corpo (body) nella risposta, confermando l'avvenuta eliminazione.
-        clienteRepository.deleteById(id);
+    public void deleteCliente(@PathVariable Long id, @RequestParam Long utenteId) {
+        // 1. Cerchiamo il cliente nel database
+        Cliente clienteEsistente = clienteRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente non trovato."));
+
+        // 2. Controllo di sicurezza: l'utente loggato è il proprietario di questo cliente?
+        if (!clienteEsistente.getUtenteId().equals(utenteId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Accesso negato: non sei autorizzato a eliminare questo cliente.");
+        }
+
+        // 3. Se supera il controllo, procediamo all'eliminazione
+        clienteRepository.delete(clienteEsistente);
     }
 }
