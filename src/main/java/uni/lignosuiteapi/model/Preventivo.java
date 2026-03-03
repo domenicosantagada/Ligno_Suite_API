@@ -39,16 +39,26 @@ public class Preventivo {
     private String toEmail;
     private String toPiva;
 
+//    /**
+//     * @OneToMany: Indica una relazione Uno-A-Molti. UN preventivo contiene MOLTI articoli (items).
+//     * cascade = CascadeType.ALL: Questo comando è potentissimo. Dice a JPA:
+//     * "Se io salvo, aggiorno o elimino il Preventivo, applica la stessa operazione a tutti
+//     * i PreventivoItem collegati ad esso".
+//     * Ad esempio, se elimino il preventivo col DELETE, verranno cancellate automaticamente dal DB
+//     * anche tutte le righe di spesa associate, mantenendo il database pulito (integrità referenziale).
+//     */
+//    @OneToMany(cascade = CascadeType.ALL)
+//    private List<PreventivoItem> items; // Le righe del preventivo
+
+
     /**
      * @OneToMany: Indica una relazione Uno-A-Molti. UN preventivo contiene MOLTI articoli (items).
-     * cascade = CascadeType.ALL: Questo comando è potentissimo. Dice a JPA:
-     * "Se io salvo, aggiorno o elimino il Preventivo, applica la stessa operazione a tutti
-     * i PreventivoItem collegati ad esso".
-     * Ad esempio, se elimino il preventivo col DELETE, verranno cancellate automaticamente dal DB
-     * anche tutte le righe di spesa associate, mantenendo il database pulito (integrità referenziale).
+     * cascade = CascadeType.ALL: Applica salvataggio/eliminazione a cascata.
+     * orphanRemoval = true: Elimina fisicamente dal DB le righe che vengono rimosse dalla lista.
      */
-    @OneToMany(cascade = CascadeType.ALL)
-    private List<PreventivoItem> items; // Le righe del preventivo
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "preventivo_id") // Evita la creazione della terza tabella di appoggio
+    private List<PreventivoItem> items;
 
     private Double taxRate;
     private Double subtotal;
