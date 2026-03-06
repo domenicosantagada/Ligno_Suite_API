@@ -45,6 +45,12 @@ public class PreventiviController {
      */
     @PostMapping
     public Preventivo createPreventivo(@RequestBody Preventivo invoice) {
+
+        //  Esiste già questo numero per questo utente?
+        if (preventivoRepository.existsByUtenteIdAndInvoiceNumber(invoice.getUtenteId(), invoice.getInvoiceNumber())) {
+            // Lancia un errore 409 CONFLICT. Il frontend di Angular lo intercetterà.
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Numero preventivo già in uso.");
+        }
         return preventivoRepository.save(invoice);
     }
 
@@ -63,6 +69,14 @@ public class PreventiviController {
         // 2. Controllo di sicurezza: chi tenta di modificarlo è il vero proprietario?
         if (!preventivoEsistente.getUtenteId().equals(invoice.getUtenteId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Accesso negato: non sei autorizzato a modificare questo preventivo.");
+        }
+
+        // Se l'utente sta cercando di CAMBIARE il numero del preventivo,
+        // dobbiamo assicurarci che il nuovo numero scelto non sia già preso da un suo altro preventivo.
+        if (!preventivoEsistente.getInvoiceNumber().equals(invoice.getInvoiceNumber())) {
+            if (preventivoRepository.existsByUtenteIdAndInvoiceNumber(invoice.getUtenteId(), invoice.getInvoiceNumber())) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Numero preventivo già in uso.");
+            }
         }
 
         // 3. Assicuriamoci che l'ID del preventivo non venga sovrascritto

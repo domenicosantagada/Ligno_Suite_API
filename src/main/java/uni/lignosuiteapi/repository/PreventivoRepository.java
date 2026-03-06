@@ -14,6 +14,9 @@ public interface PreventivoRepository extends JpaRepository<Preventivo, Long> {
     // Query Method automatico: Trova tutti i preventivi associati a un utente
     List<Preventivo> findByUtenteId(Long utenteId);
 
+    // Restituisce true se esiste già una combinazione di quell'utente con quel numero fattura
+    boolean existsByUtenteIdAndInvoiceNumber(Long utenteId, Long invoiceNumber);
+
     /**
      * QUERY PERSONALIZZATA (JPQL - Java Persistence Query Language)
      * Quando il nome del metodo non basta a generare una query complessa,
