@@ -15,15 +15,30 @@ public class EmailController {
     @Autowired
     private EmailService emailService;
 
+    //    @PostMapping("/invia-preventivo")
+//    public ResponseEntity<String> inviaPreventivoEmail(
+//            @RequestParam("file") MultipartFile file,
+//            @RequestParam("destinatario") String destinatario,
+//            @RequestParam("nomeCliente") String nomeCliente) {
+//        try {
+//            String oggetto = "Preventivo LignoSuite - " + nomeCliente;
+//            String testo = "Gentile " + nomeCliente + ",\n\nIn allegato trova il preventivo richiesto.\n\nCordiali saluti.";
+//
+//            emailService.inviaPreventivoConAllegato(destinatario, oggetto, testo, file);
+//            return ResponseEntity.ok("{\"messaggio\": \"Email inviata con successo\"}");
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errore\": \"Impossibile inviare l'email\"}");
+//        }
+//    }
     @PostMapping("/invia-preventivo")
     public ResponseEntity<String> inviaPreventivoEmail(
             @RequestParam("file") MultipartFile file,
             @RequestParam("destinatario") String destinatario,
-            @RequestParam("nomeCliente") String nomeCliente) {
+            @RequestParam("oggetto") String oggetto,
+            @RequestParam("testo") String testo) {
         try {
-            String oggetto = "Preventivo LignoSuite - " + nomeCliente;
-            String testo = "Gentile " + nomeCliente + ",\n\nIn allegato trova il preventivo richiesto.\n\nCordiali saluti.";
-
+            // Ora usiamo i dati presi direttamente dal form di Angular!
             emailService.inviaPreventivoConAllegato(destinatario, oggetto, testo, file);
             return ResponseEntity.ok("{\"messaggio\": \"Email inviata con successo\"}");
         } catch (Exception e) {
@@ -31,4 +46,5 @@ public class EmailController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errore\": \"Impossibile inviare l'email\"}");
         }
     }
+
 }
