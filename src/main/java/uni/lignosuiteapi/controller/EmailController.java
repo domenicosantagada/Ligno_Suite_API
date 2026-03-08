@@ -15,6 +15,7 @@ public class EmailController {
     @Autowired
     private EmailService emailService;
 
+    // versione senza form di Angular per modificare e visualizzare la mail prima dell'invio
     //    @PostMapping("/invia-preventivo")
 //    public ResponseEntity<String> inviaPreventivoEmail(
 //            @RequestParam("file") MultipartFile file,
@@ -31,15 +32,36 @@ public class EmailController {
 //            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errore\": \"Impossibile inviare l'email\"}");
 //        }
 //    }
+
+//    // versione con form di Angular per modificare e visualizzare la mail prima dell'invio'
+//    @PostMapping("/invia-preventivo")
+//    public ResponseEntity<String> inviaPreventivoEmail(
+//            @RequestParam("file") MultipartFile file,
+//            @RequestParam("destinatario") String destinatario,
+//            @RequestParam("oggetto") String oggetto,
+//            @RequestParam("testo") String testo) {
+//        try {
+//            // Ora usiamo i dati presi direttamente dal form di Angular!
+//            emailService.inviaPreventivoConAllegato(destinatario, oggetto, testo, file);
+//            return ResponseEntity.ok("{\"messaggio\": \"Email inviata con successo\"}");
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"errore\": \"Impossibile inviare l'email\"}");
+//        }
+//    }
+
+
+    // versione per applicare la metodologia di replay-to
     @PostMapping("/invia-preventivo")
     public ResponseEntity<String> inviaPreventivoEmail(
             @RequestParam("file") MultipartFile file,
             @RequestParam("destinatario") String destinatario,
             @RequestParam("oggetto") String oggetto,
-            @RequestParam("testo") String testo) {
+            @RequestParam("testo") String testo,
+            @RequestParam("nomeMittente") String nomeMittente, // Aggiunto
+            @RequestParam("emailMittente") String emailMittente) { // Aggiunto
         try {
-            // Ora usiamo i dati presi direttamente dal form di Angular!
-            emailService.inviaPreventivoConAllegato(destinatario, oggetto, testo, file);
+            emailService.inviaPreventivoConAllegato(destinatario, oggetto, testo, file, nomeMittente, emailMittente);
             return ResponseEntity.ok("{\"messaggio\": \"Email inviata con successo\"}");
         } catch (Exception e) {
             e.printStackTrace();
