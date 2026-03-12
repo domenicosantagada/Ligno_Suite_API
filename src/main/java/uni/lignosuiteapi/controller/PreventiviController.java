@@ -1,20 +1,34 @@
 package uni.lignosuiteapi.controller;
 
+// Import delle classi necessarie al funzionamento del controller
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import uni.lignosuiteapi.dao.PreventivoDao;
 import uni.lignosuiteapi.model.Preventivo;
-import uni.lignosuiteapi.repository.PreventivoRepository;
 
 import java.util.List;
 
 /**
- * Controller REST per la gestione dei preventivi (o fatture/invoice).
- * * @RestController: Specifica che la classe gestirà richieste HTTP e restituirà risposte in formato JSON.
- * * @RequestMapping("/api/preventivi"): Definisce la rotta base. Tutti gli endpoint qui dentro
- * inizieranno con http://localhost:8080/api/preventivi.
- * * @CrossOrigin: Consente ad Angular (sulla porta 4200) di fare richieste a questo backend
+ * Controller REST per la gestione dei preventivi.
+ * <p>
+ * Questo controller espone le API che permettono al frontend
+ * di eseguire operazioni CRUD sui preventivi:
+ * <p>
+ * - Recuperare tutti i preventivi
+ * - Creare un nuovo preventivo
+ * - Aggiornare un preventivo
+ * - Eliminare un preventivo
+ * - Ottenere il prossimo numero preventivo disponibile
+ *
+ * @RestController Indica a Spring Boot che questa classe è un controller REST.
+ * I metodi restituiscono direttamente dati JSON come risposta HTTP.
+ * @RequestMapping("/api/preventivi") Definisce il prefisso di tutte le rotte di questo controller.
+ * Tutti gli endpoint saranno accessibili tramite /api/preventivi.
+ * @CrossOrigin Permette al frontend Angular (che gira su localhost:4200)
+ * di effettuare richieste HTTP verso questo backend.
  */
 @RestController
 @RequestMapping("/api/preventivi")
@@ -22,106 +36,242 @@ import java.util.List;
 public class PreventiviController {
 
     /**
-     * @Autowired: Inietta l'istanza del repository, senza dover scrivere query sql manuali.
+     * @Autowired Permette a Spring di iniettare automaticamente l'oggetto PreventivoDao.
+     * <p>
+     * Il DAO (Data Access Object) è la classe che si occupa
+     * dell'accesso al database per l'entità Preventivo.
      */
     @Autowired
-    private PreventivoRepository preventivoRepository;
+    private PreventivoDao preventivoDao;
 
     /**
-     * LETTURA (GET) di tutti i preventivi di un utente.
-     * * @RequestParam Long utenteId: Legge l'ID dell'utente loggato dall'URL (es. /api/preventivi?utenteId=1).
-     * Fondamentale per far sì che ogni artigiano veda ESCLUSIVAMENTE i propri preventivi.
+     * =========================
+     * METODO DI UTILITÀ
+     * =========================
+     * <p>
+     * Questo metodo controlla se esiste già un preventivo
+     * con lo stesso numero per uno specifico utente.
+     * <p>
+     * Serve per evitare duplicati nel numero dei preventivi.
+     *
+     * @param utenteId      ID dell'utente proprietario dei preventivi
+     * @param invoiceNumber numero del preventivo da verificare
+     * @return true se esiste già, false se è disponibile
      */
-    @GetMapping
-    public List<Preventivo> getAllPreventivi(@RequestParam Long utenteId) {
-        // Usa un metodo personalizzato del repository per filtrare dal DB solo i preventivi di quell'utente
-        return preventivoRepository.findByUtenteId(utenteId);
+    private boolean existsInvoiceNumber(Long utenteId, Long invoiceNumber) {
+
+        /**
+         * Recupera tutti i preventivi dell'utente
+         * e utilizza uno stream per verificare se
+         * almeno uno ha lo stesso numero.
+         */
+        return preventivoDao.findAllByUtenteId(utenteId).stream()
+                .anyMatch(p -> p.getInvoiceNumber().equals(invoiceNumber));
     }
 
     /**
-     * 1. CREAZIONE NUOVO PREVENTIVO (POST)
-     * * @RequestBody: Converte il preventivo (incluso l'elenco degli articoli) in arrivo dal frontend
-     * in un oggetto Java.
+     * =========================
+     * OTTENERE TUTTI I PREVENTIVI
+     * =========================
+     * <p>
+     * Endpoint per recuperare tutti i preventivi
+     * appartenenti ad uno specifico utente.
+     *
+     * @GetMapping Gestisce richieste HTTP GET all'URL:
+     * /api/preventivi
+     * @RequestParam Permette di leggere un parametro dalla query dell'URL.
+     * <p>
+     * Esempio:
+     * GET /api/preventivi?utenteId=1
+     */
+    @GetMapping
+    public List<Preventivo> getAllPreventivi(@RequestParam Long utenteId) {
+
+        /**
+         * Il DAO recupera dal database tutti i preventivi
+         * associati all'utente specificato.
+         */
+        return preventivoDao.findAllByUtenteId(utenteId);
+    }
+
+    /**
+     * =========================
+     * CREARE UN NUOVO PREVENTIVO
+     * =========================
+     * <p>
+     * Endpoint per creare un nuovo preventivo.
+     *
+     * @PostMapping Gestisce richieste HTTP POST all'URL:
+     * /api/preventivi
+     * @RequestBody Il JSON inviato dal frontend viene convertito
+     * automaticamente in un oggetto Java Preventivo.
      */
     @PostMapping
     public Preventivo createPreventivo(@RequestBody Preventivo invoice) {
 
-        //  Esiste già questo numero per questo utente?
-        if (preventivoRepository.existsByUtenteIdAndInvoiceNumber(invoice.getUtenteId(), invoice.getInvoiceNumber())) {
-            // Lancia un errore 409 CONFLICT. Il frontend di Angular lo intercetterà.
+        /**
+         * Controllo per verificare se il numero preventivo
+         * è già utilizzato da un altro preventivo dello stesso utente.
+         */
+        if (existsInvoiceNumber(invoice.getUtenteId(), invoice.getInvoiceNumber())) {
+
+            /**
+             * HttpStatus.CONFLICT (409)
+             * Indica un conflitto perché il numero preventivo è già utilizzato.
+             */
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Numero preventivo già in uso.");
         }
-        return preventivoRepository.save(invoice);
+
+        /**
+         * Se il numero è disponibile,
+         * il preventivo viene salvato nel database.
+         */
+        return preventivoDao.save(invoice);
     }
 
     /**
-     * 2. AGGIORNAMENTO PREVENTIVO ESISTENTE (PUT)
-     * * @PathVariable Long id: Prende l'ID del preventivo direttamente dall'URL (es. /api/preventivi/5).
-     * * @RequestBody Preventivo invoice: Contiene i nuovi dati del preventivo modificati dall'utente nel frontend.
+     * =========================
+     * AGGIORNARE UN PREVENTIVO
+     * =========================
+     * <p>
+     * Endpoint per aggiornare un preventivo esistente.
+     *
+     * @PutMapping("/{id}") Gestisce richieste HTTP PUT all'URL:
+     * /api/preventivi/{id}
+     * <p>
+     * {id} rappresenta l'identificativo del preventivo.
      */
     @PutMapping("/{id}")
     public Preventivo updatePreventivo(@PathVariable Long id, @RequestBody Preventivo invoice) {
 
-        // 1. Recupera il preventivo originale dal DB
-        Preventivo preventivoEsistente = preventivoRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Impossibile aggiornare: preventivo non trovato."));
+        /**
+         * Recupera il preventivo esistente dal database.
+         */
+        Preventivo preventivoEsistente = preventivoDao.findById(id);
 
-        // 2. Controllo di sicurezza: chi tenta di modificarlo è il vero proprietario?
-        if (!preventivoEsistente.getUtenteId().equals(invoice.getUtenteId())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Accesso negato: non sei autorizzato a modificare questo preventivo.");
+        // Se il preventivo non esiste
+        if (preventivoEsistente == null) {
+
+            /**
+             * HttpStatus.NOT_FOUND (404)
+             * Il preventivo richiesto non è stato trovato.
+             */
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Impossibile aggiornare: preventivo non trovato.");
         }
 
-        // Se l'utente sta cercando di CAMBIARE il numero del preventivo,
-        // dobbiamo assicurarci che il nuovo numero scelto non sia già preso da un suo altro preventivo.
+        /**
+         * Controllo di sicurezza:
+         *
+         * Verifica che il preventivo appartenga
+         * all'utente che sta tentando di modificarlo.
+         */
+        if (!preventivoEsistente.getUtenteId().equals(invoice.getUtenteId())) {
+
+            /**
+             * HttpStatus.FORBIDDEN (403)
+             * L'utente non ha il permesso di modificare questo preventivo.
+             */
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Accesso negato.");
+        }
+
+        /**
+         * Se il numero del preventivo è stato modificato,
+         * bisogna verificare che non sia già utilizzato
+         * da un altro preventivo dello stesso utente.
+         */
         if (!preventivoEsistente.getInvoiceNumber().equals(invoice.getInvoiceNumber())) {
-            if (preventivoRepository.existsByUtenteIdAndInvoiceNumber(invoice.getUtenteId(), invoice.getInvoiceNumber())) {
+
+            if (existsInvoiceNumber(invoice.getUtenteId(), invoice.getInvoiceNumber())) {
+
+                /**
+                 * HttpStatus.CONFLICT (409)
+                 * Il numero preventivo è già utilizzato.
+                 */
                 throw new ResponseStatusException(HttpStatus.CONFLICT, "Numero preventivo già in uso.");
             }
         }
 
-        // 3. Assicuriamoci che l'ID del preventivo non venga sovrascritto
+        /**
+         * Impostiamo manualmente l'id del preventivo
+         * per assicurarci che venga aggiornato il record corretto.
+         */
         invoice.setId(id);
 
-        // 4. Salva la modifica
-        return preventivoRepository.save(invoice);
+        /**
+         * Il DAO aggiorna il preventivo nel database.
+         */
+        return preventivoDao.update(invoice);
     }
 
     /**
-     * ELIMINAZIONE PREVENTIVO (DELETE)
-     * * @PathVariable Long id: ID del preventivo da cancellare.
-     * * @RequestParam Long utenteId: ID dell'utente che ha creato il preventivo.
+     * =========================
+     * ELIMINARE UN PREVENTIVO
+     * =========================
+     * <p>
+     * Endpoint per eliminare un preventivo dal database.
+     *
+     * @DeleteMapping("/{id}") Gestisce richieste HTTP DELETE all'URL:
+     * /api/preventivi/{id}
      */
     @DeleteMapping("/{id}")
     public void deletePreventivo(@PathVariable Long id, @RequestParam Long utenteId) {
-        // 1. Cerca il preventivo nel database
-        Preventivo preventivoEsistente = preventivoRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Preventivo non trovato."));
 
-        // 2. Controllo di sicurezza
-        // Verifica che l'utente che fa la richiesta sia il vero proprietario del preventivo
-        if (!preventivoEsistente.getUtenteId().equals(utenteId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Accesso negato: non sei autorizzato a eliminare questo preventivo.");
+        /**
+         * Recupera il preventivo dal database.
+         */
+        Preventivo preventivoEsistente = preventivoDao.findById(id);
+
+        // Se il preventivo non esiste
+        if (preventivoEsistente == null) {
+
+            /**
+             * HttpStatus.NOT_FOUND (404)
+             * Il preventivo richiesto non esiste.
+             */
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Preventivo non trovato.");
         }
 
+        /**
+         * Controllo di sicurezza:
+         *
+         * Verifica che il preventivo appartenga
+         * all'utente che sta tentando di eliminarlo.
+         */
+        if (!preventivoEsistente.getUtenteId().equals(utenteId)) {
 
-        // 3. Se il controllo è superato, procedi con l'eliminazione sicura
-        preventivoRepository.delete(preventivoEsistente);
+            /**
+             * HttpStatus.FORBIDDEN (403)
+             * L'utente non ha i permessi per eliminare questo preventivo.
+             */
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Accesso negato.");
+        }
+
+        /**
+         * Se tutti i controlli sono superati,
+         * il preventivo viene eliminato dal database.
+         */
+        preventivoDao.deleteById(id, utenteId);
     }
 
     /**
-     * ENDPOINT PERSONALIZZATO: Ottiene il prossimo numero di preventivo progressivo.
-     * Rotta: GET /api/preventivi/next-number?utenteId=X
-     * Questo è molto utile dal lato business: quando l'utente crea un nuovo preventivo,
-     * il sistema sa già suggerirgli il numero progressivo corretto (es. Preventivo n° 6).
+     * =========================
+     * OTTENERE IL PROSSIMO NUMERO PREVENTIVO
+     * =========================
+     * <p>
+     * Endpoint che restituisce il prossimo numero
+     * di preventivo disponibile per un utente.
+     *
+     * @GetMapping("/next-number") Esempio chiamata:
+     * GET /api/preventivi/next-number?utenteId=1
      */
     @GetMapping("/next-number")
     public Long getNextInvoiceNumber(@RequestParam Long utenteId) {
-        // Chiama una query personalizzata (scritta da te nel PreventivoRepository) che cerca
-        // il numero (o ID) massimo di preventivo per quello specifico utente.
-        Long maxId = preventivoRepository.findMaxInvoiceNumberByUtenteId(utenteId);
 
-        // Aggiunge 1 al massimo trovato per suggerire il prossimo numero.
-        // Se l'utente non ha ancora preventivi (maxId = 0), il primo sarà il numero 1.
-        return maxId + 1;
+        /**
+         * Il DAO calcola automaticamente
+         * il valore massimo dei numeri preventivo esistenti
+         * e restituisce il successivo (MAX + 1).
+         */
+        return preventivoDao.getNextInvoiceNumber(utenteId);
     }
 }
