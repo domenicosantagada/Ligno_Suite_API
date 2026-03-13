@@ -42,25 +42,6 @@ public class PreventiviController {
 
     /**
      * =========================
-     * METODO DI UTILITÀ
-     * =========================
-     * <p>
-     * Questo metodo controlla se esiste già un preventivo
-     * con lo stesso numero per uno specifico utente.
-     * <p>
-     * Serve per evitare duplicati nel numero dei preventivi.
-     *
-     * @param utenteId      ID dell'utente proprietario dei preventivi
-     * @param invoiceNumber numero del preventivo da verificare
-     * @return true se esiste già, false se è disponibile
-     */
-    private boolean existsInvoiceNumber(Long utenteId, Long invoiceNumber) {
-
-        return false;
-    }
-
-    /**
-     * =========================
      * OTTENERE TUTTI I PREVENTIVI
      * =========================
      * <p>
