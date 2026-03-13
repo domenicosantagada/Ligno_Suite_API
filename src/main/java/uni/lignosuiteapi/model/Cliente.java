@@ -1,61 +1,85 @@
 package uni.lignosuiteapi.model;
 
-import jakarta.persistence.*;
 import lombok.Data;
 
 /**
- * Entità che rappresenta un Cliente all'interno della rubrica di un falegname (utente).
+ * Classe modello che rappresenta un cliente.
+ * <p>
+ * Questa classe corrisponde alla tabella "cliente" nel database
+ * e contiene le informazioni principali dei clienti associati
+ * ad un utente del sistema.
+ *
+ * @Data (Lombok)
+ * Genera automaticamente:
+ * - getter
+ * - setter
+ * - toString()
+ * - equals() e hashCode()
  */
-@Entity
 @Data
 public class Cliente {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // Chiave primaria generata dal DB (Auto Increment)
+    // Identificativo univoco del cliente
+    private Long id;
 
-    private Long utenteId; // ID dell'utente (falegname) a cui questo cliente è associato
+    // ID dell'utente proprietario del cliente
+    private Long utenteId;
+
+    // Dati principali del cliente
     private String nome;
     private String email;
     private String telefono;
     private String partitaIva;
 
-    @PrePersist // Eseguito in automatico prima di una INSERT nel DB
-    @PreUpdate  // Eseguito in automatico prima di un UPDATE nel DB
+    /**
+     * Metodo che normalizza i dati prima del salvataggio nel database.
+     * Viene richiamato dal DAO prima di eseguire INSERT o UPDATE.
+     */
     public void formattaDati() {
-        // 1. Il nome (o ragione sociale) avrà sempre le iniziali maiuscole
-        if (this.nome != null) {
+
+        // Capitalizza il nome (es. "mario rossi" -> "Mario Rossi")
+        if (this.nome != null)
             this.nome = capitalizzaParole(this.nome);
-        }
-        // 2. L'email sarà sempre tutta minuscola e senza spazi accidentali
-        if (this.email != null) {
+
+        // Email in minuscolo senza spazi
+        if (this.email != null)
             this.email = this.email.trim().toLowerCase();
-        }
-        // 3. La Partita IVA (o Codice Fiscale) sarà sempre tutta maiuscola e senza spazi
-        if (this.partitaIva != null) {
+
+        // Partita IVA in maiuscolo
+        if (this.partitaIva != null)
             this.partitaIva = this.partitaIva.trim().toUpperCase();
-        }
-        // 4. Tolgo eventuali spazi messi per sbaglio prima o dopo il telefono
-        if (this.telefono != null) {
+
+        // Rimozione spazi nel telefono
+        if (this.telefono != null)
             this.telefono = this.telefono.trim();
-        }
     }
 
-    // Metodo privato di utilità per fare l'iniziale maiuscola di ogni parola
+    /**
+     * Metodo di utilità che capitalizza le parole di una stringa.
+     * <p>
+     * Esempio:
+     * "azienda alfa srl" -> "Azienda Alfa Srl"
+     */
     private String capitalizzaParole(String str) {
+
         str = str.trim();
-        if (str.isEmpty()) return str;
+
+        if (str.isEmpty())
+            return str;
 
         String[] parole = str.split("\\s+");
         StringBuilder risultato = new StringBuilder();
 
         for (String parola : parole) {
+
             if (parola.length() > 0) {
+
                 risultato.append(Character.toUpperCase(parola.charAt(0)))
                         .append(parola.substring(1).toLowerCase())
                         .append(" ");
             }
         }
+
         return risultato.toString().trim();
     }
 }
