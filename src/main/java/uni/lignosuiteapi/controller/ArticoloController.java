@@ -3,9 +3,7 @@ package uni.lignosuiteapi.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import uni.lignosuiteapi.model.Articolo;
-import uni.lignosuiteapi.model.Utente;
-import uni.lignosuiteapi.repository.ArticoloRepository;
-import uni.lignosuiteapi.repository.UtenteRepository;
+import uni.lignosuiteapi.service.ArticoloService;
 
 import java.util.List;
 
@@ -21,10 +19,8 @@ public class ArticoloController {
 
     // @Autowired: Inietta l'istanza del repository per interagire con il database senza dover scrivere query SQL manuali.
     @Autowired
-    private ArticoloRepository articoloRepository;
+    private ArticoloService articoloService;
 
-    @Autowired
-    private UtenteRepository utenteRepository;
 
     /**
      * Metodo HTTP GET per recuperare tutti gli articoli creati da un utente specifico.
@@ -34,7 +30,11 @@ public class ArticoloController {
      */
     @GetMapping("/utente/{utenteId}")
     public List<Articolo> getArticoliByUtenteId(@PathVariable Long utenteId) {
-        return articoloRepository.findByUtenteId(utenteId);
+
+        /**
+         * Il Service chiama il DAO per recuperare tutti gli articoli associati all'utente specificato.
+         */
+        return articoloService.getArticoliByUtenteId(utenteId);
     }
 
     /**
@@ -45,9 +45,10 @@ public class ArticoloController {
      */
     @PostMapping("/utente/{utenteId}")
     public Articolo createArticolo(@PathVariable Long utenteId, @RequestBody Articolo articolo) {
-        Utente utente = utenteRepository.findById(utenteId).orElseThrow(() -> new RuntimeException("Utente non trovato"));
-        articolo.setUtente(utente);
-        return articoloRepository.save(articolo);
+        /**
+         * Il Service chiama il DAO per salvare il nuovo articolo associato all'utente specificato.
+         */
+        return articoloService.createArticolo(utenteId, articolo);
     }
 
     /**
@@ -60,18 +61,10 @@ public class ArticoloController {
     @PutMapping("/{id}")
     public Articolo updateArticolo(@PathVariable Long id, @RequestBody Articolo dettagli) {
 
-        // Creiamo un articolo temporaneo con i dettagli aggiornati
-        // In caso non troviamo l'articolo, lanciamo un'eccezione
-        Articolo articolo = articoloRepository.findById(id).orElseThrow(() ->
-                new RuntimeException("Articolo non trovato"));
-
-        articolo.setNome(dettagli.getNome());
-        articolo.setPrezzoAcquisto(dettagli.getPrezzoAcquisto());
-        articolo.setFornitore(dettagli.getFornitore());
-        articolo.setDataAcquisto(dettagli.getDataAcquisto());
-        articolo.setUnitaMisura(dettagli.getUnitaMisura());
-
-        return articoloRepository.save(articolo);
+        /**
+         * Il Service chiama il DAO per aggiornare i dettagli dell'articolo specificato.
+         */
+        return articoloService.updateArticolo(id, dettagli);
     }
 
     /**
@@ -81,6 +74,10 @@ public class ArticoloController {
      */
     @DeleteMapping("/{id}")
     public void deleteArticolo(@PathVariable Long id) {
-        articoloRepository.deleteById(id);
+
+        /**
+         * Il Service chiama il DAO per eliminare l'articolo specificato.
+         */
+        articoloService.deleteArticolo(id);
     }
 }

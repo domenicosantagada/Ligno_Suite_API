@@ -4,7 +4,6 @@ package uni.lignosuiteapi.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import uni.lignosuiteapi.dao.daoImpl.ClienteDaoImpl;
 import uni.lignosuiteapi.model.Cliente;
 import uni.lignosuiteapi.service.ClienteService;
 
@@ -39,8 +38,7 @@ public class ClienteController {
      */
     @Autowired
     private ClienteService clienteService;
-    @Autowired
-    private ClienteDaoImpl clienteDaoImpl;
+
 
     /**
      * =========================

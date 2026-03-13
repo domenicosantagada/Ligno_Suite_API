@@ -1,20 +1,14 @@
 package uni.lignosuiteapi.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.*;
 import lombok.Data;
 
 import java.time.LocalDate;
 
 @Data
-@Entity
 public class Articolo {
 
-    // Identificatore univoco dell'articolo'
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    // Identificativo univoco dell'articolo
     private Long id;
-
     // Attributi dell'articolo
     private String nome;
     private String descrizione;
@@ -23,16 +17,15 @@ public class Articolo {
     private String unitaMisura;
     private LocalDate dataAcquisto;
 
-    // Colleghiamo l'articolo all'utente loggato per privacy dei dati
-    @ManyToOne
-    @JoinColumn(name = "utente_id")
-    @JsonIgnore // Evita loop infiniti quando Spring trasforma i dati in JSON
+    // Invece dell'intero oggetto Utente, salviamo solo il suo ID
+    private Long utenteId;
+
+    // Utente che ha creato l'articolo
     private Utente utente;
 
     // Logica di formattazione dei dati
 
-    @PrePersist
-    @PreUpdate
+    // Metodo richiamato manualmente dal DAO
     public void formattaDati() {
         if (this.nome != null) {
             this.nome = capitalizzaParole(this.nome);
@@ -40,7 +33,6 @@ public class Articolo {
         if (this.fornitore != null) {
             this.fornitore = capitalizzaParole(this.fornitore);
         }
-
     }
 
     // Metodo privato di utilità per fare l'iniziale maiuscola di ogni parola
