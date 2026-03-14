@@ -46,6 +46,18 @@ public class ArticoloController {
     @PostMapping("/utente/{utenteId}")
     public Articolo createArticolo(@PathVariable Long utenteId, @RequestBody Articolo articolo) {
         /**
+         * @PathVariable utenteId: ID dell'utente che ha creato l'articolo.
+         * @RequestBody articolo: Dettagli del nuovo articolo da creare sotto forma di JSON nel corpo della richiesta.
+         *  http://localhost:8080/api/articoli/utente/2?
+         * {
+         *   "nome": "maniglia",
+         *   "prezzoAcquisto": 3.50,
+         *   "fornitore": "ferramenta rossi",
+         *   "unitaMisura": "pz",
+         *   "dataAcquisto": "2024-03-14"
+         * }
+         */
+        /**
          * Il Service chiama il DAO per salvare il nuovo articolo associato all'utente specificato.
          */
         return articoloService.createArticolo(utenteId, articolo);

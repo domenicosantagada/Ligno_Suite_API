@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.*;
 import uni.lignosuiteapi.model.Utente;
 import uni.lignosuiteapi.service.UtenteService;
 
+import java.util.List;
+
 /**
  * Controller per la gestione dell'autenticazione (Login, Registrazione) e del profilo utente.
  *
@@ -32,6 +34,21 @@ public class AuthController {
      */
     @Autowired
     private UtenteService utenteService;
+
+    /**
+     * =========================
+     * RECUPERO TUTTI GLI UTENTI
+     * =========================
+     * <p>
+     * Endpoint per visualizzare la lista di tutti gli utenti registrati.
+     *
+     * @GetMapping("/all") Questo metodo risponde alle richieste HTTP GET all'URL:
+     * /api/auth/all
+     */
+    @GetMapping("/all")
+    public List<Utente> getAllUtenti() {
+        return utenteService.getAllUtenti();
+    }
 
     /**
      * =========================

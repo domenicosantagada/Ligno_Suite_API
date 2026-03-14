@@ -11,6 +11,7 @@ import uni.lignosuiteapi.model.Utente;
 
 import java.sql.PreparedStatement;
 import java.sql.Statement;
+import java.util.List;
 
 /**
  * Implementazione del DAO per la gestione degli utenti.
@@ -53,6 +54,13 @@ public class UtenteDaoImpl implements UtenteDao {
      */
     @Autowired
     private JdbcTemplate jdbcTemplate;
+
+
+    @Override
+    public List<Utente> findAll() {
+        String sql = "SELECT * FROM utente";
+        return jdbcTemplate.query(sql, rowMapper);
+    }
 
     /**
      * Recupera un utente tramite ID.

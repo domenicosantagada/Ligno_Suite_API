@@ -7,6 +7,8 @@ import org.springframework.web.server.ResponseStatusException;
 import uni.lignosuiteapi.dao.UtenteDao;
 import uni.lignosuiteapi.model.Utente;
 
+import java.util.List;
+
 /**
  * Service per la gestione degli utenti.
  */
@@ -125,5 +127,10 @@ public class UtenteService {
          * L'utente aggiornato viene restituito al frontend.
          */
         return utenteDao.update(utenteEsistente);
+    }
+
+    // Metodo per recuperare tutti gli utenti
+    public List<Utente> getAllUtenti() {
+        return utenteDao.findAll();
     }
 }
