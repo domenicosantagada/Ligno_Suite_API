@@ -50,7 +50,11 @@ public class PreventivoDaoImpl implements PreventivoDao {
      * gli items solo quando necessario (lazy loading).
      */
     private final RowMapper<Preventivo> rowMapper = (rs, rowNum) -> {
+
+        System.out.println("Mapping del preventivo con ID: " + rs.getLong("id"));
+        // Creazione del proxy
         PreventivoProxy p = new PreventivoProxy(itemDao);
+
         p.setId(rs.getLong("id"));
         p.setInvoiceNumber(rs.getLong("invoice_number"));
         p.setUtenteId(rs.getLong("utente_id"));

@@ -29,6 +29,7 @@ public class PreventivoProxy extends Preventivo {
      * Riceve il DAO necessario per recuperare le righe del preventivo.
      */
     public PreventivoProxy(PreventivoItemDao itemDao) {
+
         this.itemDao = itemDao;
     }
 
@@ -46,7 +47,7 @@ public class PreventivoProxy extends Preventivo {
         if (!isItemsLoaded) {
 
             System.out.println(
-                    "PROXY: Lazy loading attivato! Recupero le righe del preventivo ID: "
+                    "PROXY attivato per il preventivo con ID: "
                             + this.getId()
             );
 

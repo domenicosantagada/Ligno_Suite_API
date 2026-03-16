@@ -16,27 +16,33 @@ import java.util.Map;
 @CrossOrigin(origins = "http://localhost:4200")
 public class AiController {
 
-    // INSERISCI QUI LA TUA CHIAVE API DI GEMINI
-    private final String GEMINI_API_KEY = "AIzaSyDy_Mk4RI4eU6YzMkucqI6yfji0kskEa7c";
+    // Token API : domenicosantagadaa2000@gmail.com
+    private final String GEMINI_API_KEY = "AIzaSyA10ujRpbGyAB6fAo01OUjPY4R6hru2c7k";
 
+    // Endpoint per generare una descrizione migliorata a partire da un testo di input
+    // @RequestBody Map<String, String> request: Riceve un JSON con una chiave "testo" che contiene la nota da migliorare
+    // e restituisce un JSON con una chiave "descrizioneMigliorata" che contiene la descrizione migliorata
     @PostMapping("/genera-descrizione")
     public Map<String, String> generaDescrizione(@RequestBody Map<String, String> request) {
         String inputTesto = request.get("testo");
 
         RestTemplate restTemplate = new RestTemplate();
-        // Endpoint aggiornato a Gemini 2.5 Flash
+
         String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + GEMINI_API_KEY;
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        // Prepariamo il prompt per l'IA
+        // Prompt per la generazione della descrizione migliorata
         String prompt = "Sei un falegname esperto. L'utente ti darà una breve nota. " +
                 "Trasformala in una descrizione professionale ed elegante da inserire in un preventivo. " +
                 "Sii conciso ma tecnico. Evita asterischi o formattazioni markdown, scrivi solo testo normale. " +
                 "Testo utente: " + inputTesto;
 
-        // Struttura JSON richiesta da Gemini
+        // Struttura JSON richiesta da Gemini:
+        // 1) text: il prompt
+        // 2) parts: testo del prompt
+        // 3) contents: testo generato
         Map<String, Object> textPart = Map.of("text", prompt);
         Map<String, Object> parts = Map.of("parts", List.of(textPart));
         Map<String, Object> body = Map.of("contents", List.of(parts));
