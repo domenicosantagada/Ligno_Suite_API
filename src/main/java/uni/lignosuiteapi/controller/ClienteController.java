@@ -29,7 +29,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/clienti")
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(origins = "*")
 public class ClienteController {
 
     /**

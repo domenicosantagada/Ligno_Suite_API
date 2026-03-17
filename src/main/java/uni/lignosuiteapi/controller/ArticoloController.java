@@ -14,7 +14,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/articoli")
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(origins = "*")
 public class ArticoloController {
 
     // @Autowired: Inietta l'istanza del repository per interagire con il database senza dover scrivere query SQL manuali.
