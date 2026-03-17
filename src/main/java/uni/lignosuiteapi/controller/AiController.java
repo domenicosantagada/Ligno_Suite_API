@@ -1,5 +1,6 @@
 package uni.lignosuiteapi.controller;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -16,8 +17,9 @@ import java.util.Map;
 @CrossOrigin(origins = "http://localhost:4200")
 public class AiController {
 
-    // Token API : domenicosantagadaa2000@gmail.com
-    private final String GEMINI_API_KEY = "AIzaSyA10ujRpbGyAB6fAo01OUjPY4R6hru2c7k";
+    // Api key di Google Gemini
+    @Value("${gemini.api.key}")
+    private String GEMINI_API_KEY;
 
     // Endpoint per generare una descrizione migliorata a partire da un testo di input
     // @RequestBody Map<String, String> request: Riceve un JSON con una chiave "testo" che contiene la nota da migliorare
